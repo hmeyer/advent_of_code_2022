@@ -4,8 +4,8 @@ use std::cmp::max;
 
 #[derive(Debug)]
 enum Op {
-    Mul(i64),
-    Add(i64),
+    Mul(u64),
+    Add(u64),
     Square,
 }
 
@@ -13,9 +13,9 @@ enum Op {
 #[derive(Debug)]
 struct Monkey {
     pub inspections: usize,
-    pub items: VecDeque<i64>,
+    pub items: VecDeque<u64>,
     pub op: Op,
-    pub test_div: i64,
+    pub test_div: u64,
     pub target_true: usize,
     pub target_false: usize,
 }
@@ -26,7 +26,7 @@ fn parse_monkey(lines: &mut dyn Iterator<Item=String>) -> Option<Monkey> {
     }
     let starting = lines.next().unwrap();
     assert!(starting.starts_with("  Starting items: "));
-    let items = starting[18..].split(", ").map(|i| i.parse::<i32>().unwrap().into()).collect();
+    let items = starting[18..].split(", ").map(|i| i.parse::<u32>().unwrap().into()).collect();
 
     let op = lines.next().unwrap();
     assert!(op.starts_with("  Operation: new = old "));
@@ -36,7 +36,7 @@ fn parse_monkey(lines: &mut dyn Iterator<Item=String>) -> Option<Monkey> {
     if operand == "old" {
         assert!(operator == '*');
     } else {
-        let operand = operand.parse::<i64>().unwrap();
+        let operand = operand.parse::<u32>().unwrap().into();
         match operator {
             '+' => op = Op::Add(operand),
             '*' => op = Op::Mul(operand),
@@ -47,7 +47,7 @@ fn parse_monkey(lines: &mut dyn Iterator<Item=String>) -> Option<Monkey> {
 
     let test_div = lines.next().unwrap();
     assert!(test_div.starts_with("  Test: divisible by "));
-    let test_div = test_div[21..].parse::<i64>().unwrap();
+    let test_div = test_div[21..].parse::<u32>().unwrap().into();
 
     let target_true = lines.next().unwrap();
     assert!(target_true.starts_with("    If true: throw to monkey "));
