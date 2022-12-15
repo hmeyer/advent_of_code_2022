@@ -22,7 +22,7 @@ impl fmt::Display for Packet {
 
 fn cmp_v(la: &[Packet], lb: &[Packet]) -> Ordering {
     for i in 0..min(la.len(), lb.len()) {
-        let o = cmp(&la[i], &lb[i]);
+        let o = la[i].cmp(&lb[i]);
         if o != Ordering::Equal {
             return o;
         }
@@ -36,16 +36,21 @@ fn cmp_v(la: &[Packet], lb: &[Packet]) -> Ordering {
     return Ordering::Equal;
 }
 
-
-fn cmp(a: &Packet, b: &Packet) -> Ordering {
-    let r = match (a, b) {
-        (Packet::I(ia), Packet::I(ib)) => ia.cmp(ib),
-        (Packet::V(la), Packet::V(lb)) => cmp_v(la, lb),
-        (Packet::I(ia), Packet::V(lb)) => cmp(&Packet::V(vec![a.clone()]), b),
-        (Packet::V(la), Packet::I(ib)) => cmp(a, &Packet::V(vec![b.clone()])),
-    };
-    r
+impl Packet {
+    fn cmp(&self, other: &Packet) -> Ordering {
+        match (self, other) {
+            (Packet::I(i), Packet::I(iother)) => i.cmp(iother),
+            (_, _) => cmp_v(&self.as_vec(), &other.as_vec()),
+        }
+    }
+    fn as_vec(&self) -> Vec<Packet> {
+        match self {
+            Packet::I(i) => vec![self.clone()],
+            Packet::V(v) => v.clone(),
+        }
+    }
 }
+
 
 fn parse_list(mut l: &str) -> (Packet, &str) {
     assert_eq!(l[0..1], *"[");
@@ -91,7 +96,7 @@ fn main() -> io::Result<()> {
         i += 3;
         // println!("{:?}", l1);
         // println!("{:?}", l2);
-        let c = cmp(&l1, &l2);
+        let c = l1.cmp(&l2);
         println!("{} {:?}", pi, c);
         if c != Ordering::Greater {
             sum += pi;
@@ -105,7 +110,7 @@ fn main() -> io::Result<()> {
     let d1 = Packet::V(vec![Packet::V(vec![Packet::I(6)])]);
     packets.push(d0.clone());
     packets.push(d1.clone());
-    packets.sort_by(|a, b| cmp(a,b));
+    packets.sort_by(|a, b| a.cmp(b));
     let d0i = packets.iter().enumerate().find(|(_, p)| **p == d0).map(|(i, _)| i).unwrap() + 1;
     let d1i = packets.iter().enumerate().find(|(_, p)| **p == d1).map(|(i, _)| i).unwrap() + 1;
     println!("dividers at {} and {}: prod: {}", d0i, d1i, d0i * d1i);
