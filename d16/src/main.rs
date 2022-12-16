@@ -93,52 +93,47 @@ impl ITunnels {
         cache.insert((open_sig, position, time_left), best);
         best
     }
-    fn best_path2(&self, cache: &mut HashMap<(Vec<u8>, (u8, u8), u8), i64>, opens: &HashSet<u8>, mut p1: u8, mut p2: u8, time_left: u8, all_valves: &HashSet<u8>) -> i64 {
-        if p1 > p2 {
-            (p1, p2) = (p2, p1);
-        }
-        let mut open_sig: Vec<u8> = opens.iter().map(|x| *x).collect::<Vec<_>>();
-        open_sig.sort();
-
-        if let Some(best) = cache.get(&(open_sig.clone(), (p1, p2), time_left)) {
-            return *best;
-        }
+    fn best_path2(&self, cache: &mut HashMap<(u64, (u8, u8), u8), i64>, opens: u64, mut p: (u8, u8), time_left: u8, all_valves: u64) -> i64 {
         if time_left == 0 {
             return 0;
         }
-        let open_flow: i64 = opens.iter().map(|p| *self.valves.get(p).unwrap()).sum();
+        if p.0 > p.1 {
+            (p.0, p.1) = (p.1, p.0);
+        }
+        if let Some(best) = cache.get(&(opens, p, time_left)) {
+            return *best;
+        }
+        let open_flow: i64 = self.valves.iter().map(|(v, f)| if (opens & 1 << v) == 0 { 0 } else { *f }).sum();
+
         let mut best = 0;
 
         if all_valves == opens {
             best = open_flow * time_left as i64;
         } else {
         
-            if opens.get(&p1).is_none() && *self.valves.get(&p1).unwrap() > 0 {
-                let mut nopens = opens.clone();
-                nopens.insert(p1.clone());
-                if opens.get(&p2).is_none() && *self.valves.get(&p2).unwrap() > 0 {
-                    let mut nnopens = nopens.clone();
-                    nnopens.insert(p2.clone());
-                    best = max(best, open_flow + self.best_path2(cache, &nnopens, p1, p2, time_left - 1, all_valves));
+            if (opens & 1 << p.0) == 0 && *self.valves.get(&p.0).unwrap() > 0 {
+                let nopens = opens | 1 << p.0;
+                if (opens & 1 << p.1) == 0 && *self.valves.get(&p.1).unwrap() > 0 {
+                    let nnopens = nopens | 1 << p.1;
+                    best = max(best, open_flow + self.best_path2(cache, nnopens, p, time_left - 1, all_valves));
                 }
-                for dest in self.paths.get(&p2).unwrap() {
-                    best = max(best, open_flow + self.best_path2(cache, &nopens, p1, *dest, time_left - 1, all_valves));
+                for dest in self.paths.get(&p.1).unwrap() {
+                    best = max(best, open_flow + self.best_path2(cache, nopens, (p.0, *dest), time_left - 1, all_valves));
                 }
             }
-            if opens.get(&p2).is_none() && *self.valves.get(&p2).unwrap() > 0 {
-                let mut nopens = opens.clone();
-                nopens.insert(p2);
-                for dest in self.paths.get(&p1).unwrap() {
-                    best = max(best, open_flow + self.best_path2(cache, &nopens, *dest, p2, time_left - 1, all_valves));
+            if (opens & 1 << p.1) == 0 && *self.valves.get(&p.1).unwrap() > 0 {
+                let nopens = opens | 1 << p.1;
+                for dest in self.paths.get(&p.0).unwrap() {
+                    best = max(best, open_flow + self.best_path2(cache, nopens, (*dest, p.1), time_left - 1, all_valves));
                 }
             }
-            for d1 in self.paths.get(&p1).unwrap() {
-                for d2 in self.paths.get(&p2).unwrap() {
-                    best = max(best, open_flow + self.best_path2(cache, opens, *d1, *d2, time_left - 1, all_valves));
+            for d1 in self.paths.get(&p.0).unwrap() {
+                for d2 in self.paths.get(&p.1).unwrap() {
+                    best = max(best, open_flow + self.best_path2(cache, opens, (*d1, *d2), time_left - 1, all_valves));
                 }
             }
         }
-        cache.insert((open_sig, (p1, p2), time_left), best);
+        cache.insert((opens, p, time_left), best);
         if cache.len() % 1_000_000 == 0 {
             println!("cache len: {}M", cache.len() / 1_000_000);
         }
@@ -163,8 +158,8 @@ fn main() -> io::Result<()> {
     println!("single {}", t.best_path(&mut cache, &HashSet::new(), 0, 30));
 
     let mut cache = HashMap::new();
-    let all_valves = t.valves.iter().filter(|(_, v)| **v > 0).map(|(k, _)| k.clone()).collect::<HashSet<u8>>();
-    println!("double {}", t.best_path2(&mut cache, &HashSet::new(), 0, 0, 26, &all_valves));
+    let all_valves: u64 = t.valves.iter().filter(|(_, v)| **v > 0).map(|(k, _)| k.clone()).fold(0_u64, |sum, x| sum | 1 << x);
+    println!("double {}", t.best_path2(&mut cache, 0/*opens*/, (0, 0) /*start pos*/, 26, all_valves));
 
     Ok(())
 }
