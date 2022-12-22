@@ -22,24 +22,6 @@ fn parse_line(l: &str) -> (String, Job) {
     (name, job)
 }
 
-fn eval_monkey_p1(name: &str, monkeys: &HashMap<String, Job>) -> i64 {
-    let m = monkeys.get(name).unwrap();
-    match m {
-        Job::I(v) => *v,
-        Job::Expr((m1, op, m2)) => {
-            let v1 = eval_monkey_p1(m1, monkeys);
-            let v2 = eval_monkey_p1(m2, monkeys);
-            match op {
-                '+' => v1 + v2,
-                '-' => v1 - v2,
-                '*' => v1 * v2,
-                '/' => v1 / v2,
-                x => panic!("expected op {}", x),
-            }
-        },
-    }
-}
-
 #[derive(Debug, Clone)]
 enum Expr {
     I(i64),
@@ -47,17 +29,16 @@ enum Expr {
     Op(Box<(Expr, char, Expr)>),
 }
 
-
-fn monkey_expr(name: &str, monkeys: &HashMap<String, Job>) -> Expr {
-    if name == "humn" {
+fn monkey_expr(name: &str, monkeys: &HashMap<String, Job>, tag_human: bool) -> Expr {
+    if tag_human && name == "humn" {
         return Expr::Human;
     }
     let m = monkeys.get(name).unwrap();
     match m {
         Job::I(v) => Expr::I(*v),
         Job::Expr((m1, op, m2)) => {
-            let v1 = monkey_expr(m1, monkeys);
-            let v2 = monkey_expr(m2, monkeys);
+            let v1 = monkey_expr(m1, monkeys, tag_human);
+            let v2 = monkey_expr(m2, monkeys, tag_human);
             Expr::Op(Box::new((v1, *op, v2)))
         },
     }
@@ -157,20 +138,17 @@ fn unpack_h(mut a: Expr, b: Expr) -> i64 {
 fn main() -> io::Result<()> {
     let stdin = io::stdin();
 
-    let mut monkeys = HashMap::new();
-    for l in stdin.lines() {
-        let j = parse_line(&l.unwrap());
-        monkeys.insert(j.0, j.1);
-    }
-    println!("p1 root: {}", eval_monkey_p1("root", &monkeys));
+    let monkeys = stdin.lines().map(|l| parse_line(&l.unwrap())).collect::<HashMap<_, _>>();
+    let root = monkey_expr("root", &monkeys, false);
+    println!("p1 root: {}", solve(&root).unwrap());
 
 
     let (r1, r2) = match monkeys.get("root") {
         Some(Job::Expr((r1, _, r2))) => (r1, r2),
         _ => panic!("root has not expr job"),
     };
-    let r1 = monkey_expr(r1, &monkeys);
-    let r2 = monkey_expr(r2, &monkeys);
+    let r1 = monkey_expr(r1, &monkeys, true);
+    let r2 = monkey_expr(r2, &monkeys, true);
     println!("p2 human = {}", unpack_h(r1, r2));
 
     Ok(())
