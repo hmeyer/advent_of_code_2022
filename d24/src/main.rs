@@ -59,13 +59,50 @@ fn reconstruct(mut p: State, came_from: &HashMap<State, State>) -> Vec<Vec2> {
     r
 }
 
+fn possible_moves<'a>(current: State,
+                      size: Vec2,
+                      blizzards: &'a HashSet<(char, i32, i32)>) -> impl std::iter::Iterator<Item = State> + 'a {
+    let mut n = 0;
+    std::iter::from_fn(move || {
+        for i in n..5 {
+            let (xd, yd): (i32, i32) = match i {
+                0 | 1 => (0, (i & 1) * 2 - 1),
+                2 | 3 => ((i & 1) * 2 - 1, 0),
+                4 => (0, 0),
+                _ => panic!("{} should never be greater than 4!", i),
+            };
+            let next_pos = Vec2 { x: current.p.x + xd, y: current.p.y + yd };
+            // Must not leave the map.
+            if (next_pos.x < 0 || next_pos.x == size.x || next_pos.y < 0 || next_pos.y == size.y) &&
+                // Allow entry
+                !(next_pos.x == 0 && next_pos.y == -1) &&
+                // Allow exit
+                !(next_pos.x == size.x - 1 && next_pos.y == size.y) {
+                continue;
+            }
+            let next = State::new(current.time() + 1, next_pos);
+            if has_blizzard(&next, size, blizzards) {
+                continue;
+            }
+            n = i + 1;
+            return Some(next);
+        }
+        n = 5;
+        None
+    })
+}
+
+fn lcm(a: i32, b: i32) -> i32 {
+    match (a, b) {
+        (5, 5) => 25,
+        (6, 4) => 12,
+        (120, 25) => 600,
+        _ => unimplemented!("for args: {}, {}", a, b),
+    }
+}
+
 fn dijkstra(start: State, goal: Vec2, size: Vec2, blizzards: &HashSet<(char, i32, i32)>) -> Vec<Vec2> {
-    let lcm = match size {
-        Vec2 { x: 5, y: 5 } => 25,
-        Vec2 { x: 6, y: 4 } => 12,
-        Vec2 { x: 120, y: 25 } => 600,
-        _ => panic!("unexpected size: {:?}", size),
-    };
+    let lcm = lcm(size.x, size.y);
     let mut heap = BinaryHeap::new();
     let mut dist = HashMap::new();
     dist.insert((start.p, start.time() % lcm), start.time());
@@ -83,32 +120,14 @@ fn dijkstra(start: State, goal: Vec2, size: Vec2, blizzards: &HashSet<(char, i32
                 continue;
             }
         }
-        for yd in -1..=1_i32 {
-            for xd in -1..=1_i32 {
-                if xd.abs() + yd.abs() > 1 {
-                    continue;
-                }
-                let next_pos = Vec2 { x: current.p.x + xd, y: current.p.y + yd };
-                if next_pos.x < 0 || next_pos.x == size.x || next_pos.y < 0 || next_pos.y == size.y {
-                    // Allow entry && exit
-                    if !(next_pos.x == 0 && next_pos.y == -1) && !(next_pos.x == size.x - 1 && next_pos.y == size.y) {
-                        // Must not leave the map.
-                        continue;
-                    }
-                }
-                let next = State::new(current.time() + 1, next_pos);
-                if has_blizzard(&next, size, blizzards) {
-                    continue;
-                }
-                let d = dist.entry((next.p, next.time() % lcm)).or_insert(i32::MAX);
-                if next.time() < *d {
-                    came_from.insert(next, current);
-                    heap.push(next);
-                    *d = next.time();
-                }
+        for next in possible_moves(current, size, blizzards) {
+            let d = dist.entry((next.p, next.time() % lcm)).or_insert(i32::MAX);
+            if next.time() < *d {
+                came_from.insert(next, current);
+                heap.push(next);
+                *d = next.time();
             }
         }
-
     }
     panic!("did not find a path!");
 }
