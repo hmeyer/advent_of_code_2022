@@ -1,10 +1,6 @@
 use std::io;
-use std::collections::{VecDeque, HashSet, HashMap, BinaryHeap};
-use std::cmp::{max, min};
-use std::fmt::Display;
-use std::fmt;
-use std::cmp::Ordering;
-use std::ops::RangeInclusive;
+use std::collections::{HashSet, HashMap, BinaryHeap};
+
 
 fn parse_blizzards(lines: &[String]) -> (Vec2, HashSet<(char, i32, i32)>) {
     let lines = lines[1..lines.len()-1].into_iter().collect::<Vec<_>>();
@@ -132,6 +128,44 @@ fn dijkstra(start: State, goal: Vec2, size: Vec2, blizzards: &HashSet<(char, i32
     panic!("did not find a path!");
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd)]
+struct FringeItem {
+    neg_cost_estimate: i32,
+    state: State,
+}
+
+impl FringeItem {
+    fn new(state: State, goal: Vec2) -> Self {
+        let manhattan = (state.p.x - goal.x).abs() + (state.p.y - goal.y).abs();
+        FringeItem { neg_cost_estimate: -(state.time() + manhattan), state }
+    }
+}
+
+fn a_star(start: State, goal: Vec2, size: Vec2, blizzards: &HashSet<(char, i32, i32)>) -> Vec<Vec2> {
+    let lcm = lcm(size.x, size.y);
+    let mut fringe = BinaryHeap::new();
+    let mut dist = HashMap::new();
+    dist.insert((start.p, start.time() % lcm), start.time());
+    fringe.push(FringeItem::new(start, goal));
+
+    let mut came_from = HashMap::new();
+
+    while let Some(current) = fringe.pop() {
+        if current.state.p == goal {
+            return reconstruct(current.state, &came_from);
+        }
+        for neighbor in possible_moves(current.state, size, blizzards) {
+            let d = dist.entry((neighbor.p, neighbor.time() % lcm)).or_insert(i32::MAX);
+            if neighbor.time() < *d {
+                came_from.insert(neighbor, current.state);
+                *d = neighbor.time();
+                fringe.push(FringeItem::new(neighbor, goal));
+            }
+        }
+    }
+    panic!("did not find a path!");
+}
+
 fn get_blizzard(s: &State, size: Vec2, blizzards: &HashSet<(char, i32, i32)>) -> char {
     let mut b = Vec::new();
     if blizzards.get(&('>', (s.p.x - s.time()).rem_euclid(size.x), s.p.y)).is_some() {
@@ -193,22 +227,25 @@ fn print_path(size: Vec2, path: &[Vec2], blizzards: &HashSet<(char, i32, i32)>) 
 fn main() -> io::Result<()> {
     let stdin = io::stdin();
     let (size, blizzards) = parse_blizzards(&stdin.lines().map(|l| l.unwrap()).collect::<Vec<_>>());
+
+    // let search = dijkstra;
+    let search = a_star;
     
     let start = Vec2 { x: 0, y: -1};
     let goal = Vec2 { x: size.x - 1, y: size.y - 1};
-    let p1 = dijkstra(State::new(0, start), goal, size, &blizzards);
+    let p1 = search(State::new(0, start), goal, size, &blizzards);
     // print_path(size, &p, &blizzards);
     println!("start->goal takes {} Minutes", p1.len());
 
 
     let start = Vec2 { x: size.x - 1, y: size.y};
     let goal = Vec2 { x: 0, y: 0};
-    let p2 = dijkstra(State::new(p1.len() as i32, start), goal, size, &blizzards);
+    let p2 = search(State::new(p1.len() as i32, start), goal, size, &blizzards);
     println!("start<-goal takes {} Minutes", p2.len());
 
     let start = Vec2 { x: 0, y: -1};
     let goal = Vec2 { x: size.x - 1, y: size.y - 1};
-    let p3 = dijkstra(State::new((p1.len() + p2.len()) as i32, start), goal, size, &blizzards);
+    let p3 = search(State::new((p1.len() + p2.len()) as i32, start), goal, size, &blizzards);
     println!("start->goal takes {} Minutes", p3.len());
 
     println!("total time: {} + {} + {} = {}", p1.len(), p2.len(), p3.len(), p1.len() + p2.len() + p3.len());
