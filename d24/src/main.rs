@@ -24,6 +24,8 @@ struct Vec2 {
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd)]
 struct State {
+    // Rusts BinaryHeap is a Max-Heap. But in Dijkstra we want to retrieve the
+    // next node with minimal time. So we store the negative time instead, b/c -max(-time) = min(time).
     neg_time: i32,
     p: Vec2,
 }
@@ -130,6 +132,9 @@ fn dijkstra(start: State, goal: Vec2, size: Vec2, blizzards: &HashSet<(char, i32
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd)]
 struct FringeItem {
+    // Rusts BinaryHeap is a Max-Heap. But in A* we want to retrieve the
+    // next node with the minimal cost estimate.
+    // So we store the negative time instead, b/c -max(-cost_estimate) = min(cost_estimate).
     neg_cost_estimate: i32,
     state: State,
 }
