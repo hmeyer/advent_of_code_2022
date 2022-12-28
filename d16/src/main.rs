@@ -28,22 +28,15 @@ fn maybe_consume_string<'a, 'b>(string: &'a str, l: &'b str) -> &'b str {
     }
 }
 
-#[derive(Debug, Clone)]
-struct Tunnels {
-    pub valves: HashMap<String, i64>,
-    pub paths: HashMap<String, Vec<String>>,
-}
-
-fn parse_line(l: &str, tunnels: &mut Tunnels) {
+fn parse_line<'a>(l: &'a str) -> (&'a str, (i64, Vec<&'a str>)) {
     let l = consume_string("Valve ", l);
-    let v = l[..2].to_string();
+    let v = &l[..2];
     let l = consume_string(" has flow rate=", &l[2..]);
     let (f, l) = consume_i64(l).unwrap();
     let l = maybe_consume_string("; tunnels lead to valves ", l);
     let l = maybe_consume_string("; tunnel leads to valve ", l);
-    let p = l.split(", ").map(|x| x.to_string()).collect::<Vec<_>>();
-    tunnels.valves.insert(v.clone(), f);
-    tunnels.paths.insert(v, p);
+    let p = l.split(", ").collect::<Vec<_>>();
+    (v, (f, p))
 }
 
 #[derive(Debug, Clone)]
@@ -53,29 +46,24 @@ struct ITunnels {
 }
 
 impl ITunnels {
-    fn new(tunnels: &Tunnels) -> ITunnels {
-        let mut v = tunnels.valves.keys().collect::<Vec<_>>();
+    fn new(tunnels: &HashMap<&str, (i64, Vec<&str>)>) -> ITunnels {
+        let mut v = tunnels.keys().collect::<Vec<_>>();
         v.sort();
-        let v2i: HashMap<String, u8> = v
+        let v2i: HashMap<&str, u8> = v
             .into_iter()
             .enumerate()
-            .map(|(i, v)| (v.clone(), i as u8))
+            .map(|(i, v)| (*v, i as u8))
             .collect();
         let valves = tunnels
-            .valves
             .iter()
-            .map(|(v, f)| (*v2i.get(v).unwrap(), *f))
+            .map(|(v, flow_and_paths)| (*v2i.get(v).unwrap(), flow_and_paths.0))
             .collect();
         let paths = tunnels
-            .paths
             .iter()
-            .map(|(v, p)| {
-                (
+            .map(|(v, flow_and_paths)| (
                     *v2i.get(v).unwrap(),
-                    p.iter().map(|x| *v2i.get(x).unwrap()).collect(),
-                )
-            })
-            .collect();
+                    flow_and_paths.1.iter().map(|x| *v2i.get(x).unwrap()).collect(),
+                )).collect();
         ITunnels { valves, paths }
     }
     fn best_path(
@@ -235,12 +223,10 @@ fn main() -> io::Result<()> {
     let stdin = io::stdin();
 
     let lines = stdin.lines().map(|l| l.unwrap()).collect::<Vec<_>>();
-    let mut t = Tunnels {
-        valves: HashMap::new(),
-        paths: HashMap::new(),
-    };
+    let mut t = HashMap::new();
     for l in lines.iter() {
-        parse_line(l, &mut t);
+        let (room, flow_and_paths) = parse_line(l);
+        t.insert(room, flow_and_paths);
     }
 
     let t = ITunnels::new(&t);
