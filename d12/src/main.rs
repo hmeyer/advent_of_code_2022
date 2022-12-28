@@ -1,7 +1,6 @@
-use std::io;
-use std::collections::{VecDeque, HashSet};
 use std::cmp::max;
-
+use std::collections::{HashSet, VecDeque};
+use std::io;
 
 fn find_starts(m: &Vec<Vec<char>>) -> Vec<(i32, i32)> {
     let mut r = Vec::new();
@@ -17,7 +16,10 @@ fn find_starts(m: &Vec<Vec<char>>) -> Vec<(i32, i32)> {
 
 fn main() -> io::Result<()> {
     let stdin = io::stdin();
-    let map = stdin.lines().map(|l| l.unwrap().chars().collect::<Vec<_>>()).collect::<Vec<_>>();
+    let map = stdin
+        .lines()
+        .map(|l| l.unwrap().chars().collect::<Vec<_>>())
+        .collect::<Vec<_>>();
 
     println!("{:?}", map);
 
@@ -34,14 +36,13 @@ fn main() -> io::Result<()> {
         }
         let mut h = map[p.0 as usize][p.1 as usize];
         if h == 'E' {
-                println!("took {} steps", steps);
+            println!("took {} steps", steps);
             break;
         }
         let steps = steps + 1;
-        if h == 'S'  {
+        if h == 'S' {
             h = 'a';
         }
-
 
         for (dx, dy) in [(-1, 0), (1, 0), (0, -1), (0, 1)] {
             let np = (p.0 + dx, p.1 + dy);

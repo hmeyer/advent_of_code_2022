@@ -1,9 +1,9 @@
-use std::io;
-use std::collections::{VecDeque, HashSet};
 use std::cmp::min;
-use std::fmt::Display;
-use std::fmt;
 use std::cmp::Ordering;
+use std::collections::{HashSet, VecDeque};
+use std::fmt;
+use std::fmt::Display;
+use std::io;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 enum Packet {
@@ -15,7 +15,14 @@ impl fmt::Display for Packet {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Packet::I(i) => write!(f, "{}", i),
-            Packet::V(l) => write!(f, "[{}]", l.iter().map(|x| format!("{}", x)).collect::<Vec<_>>().join(",")),
+            Packet::V(l) => write!(
+                f,
+                "[{}]",
+                l.iter()
+                    .map(|x| format!("{}", x))
+                    .collect::<Vec<_>>()
+                    .join(",")
+            ),
         }
     }
 }
@@ -51,7 +58,6 @@ impl Packet {
     }
 }
 
-
 fn parse_list(mut l: &str) -> (Packet, &str) {
     assert_eq!(l[0..1], *"[");
     l = &l[1..];
@@ -68,12 +74,12 @@ fn parse_list(mut l: &str) -> (Packet, &str) {
             }
             break;
         } else {
-            let e = l.find(&[']',',']).unwrap();
+            let e = l.find(&[']', ',']).unwrap();
             assert!(e >= 1, "{} < 1", e);
             let i = l[..e].parse().unwrap();
             res.push(Packet::I(i));
 
-            let comma = l[e..e+1] == *",";
+            let comma = l[e..e + 1] == *",";
             l = &l[e..];
             if comma {
                 l = &l[1..];
@@ -92,7 +98,7 @@ fn main() -> io::Result<()> {
     let mut packets = Vec::new();
     while i < lines.len() {
         let l1 = parse_list(&lines[i]).0;
-        let l2 = parse_list(&lines[i+1]).0;
+        let l2 = parse_list(&lines[i + 1]).0;
         i += 3;
         // println!("{:?}", l1);
         // println!("{:?}", l2);
@@ -111,8 +117,20 @@ fn main() -> io::Result<()> {
     packets.push(d0.clone());
     packets.push(d1.clone());
     packets.sort_by(|a, b| a.cmp(b));
-    let d0i = packets.iter().enumerate().find(|(_, p)| **p == d0).map(|(i, _)| i).unwrap() + 1;
-    let d1i = packets.iter().enumerate().find(|(_, p)| **p == d1).map(|(i, _)| i).unwrap() + 1;
+    let d0i = packets
+        .iter()
+        .enumerate()
+        .find(|(_, p)| **p == d0)
+        .map(|(i, _)| i)
+        .unwrap()
+        + 1;
+    let d1i = packets
+        .iter()
+        .enumerate()
+        .find(|(_, p)| **p == d1)
+        .map(|(i, _)| i)
+        .unwrap()
+        + 1;
     println!("dividers at {} and {}: prod: {}", d0i, d1i, d0i * d1i);
 
     Ok(())

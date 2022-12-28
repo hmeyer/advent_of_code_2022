@@ -1,11 +1,10 @@
-use std::io;
 use std::collections::{HashSet, VecDeque};
+use std::io;
 use std::ops::RangeInclusive;
-
 
 fn parse_line(l: &str) -> usize {
     let mut b = VecDeque::new();
-    const L:usize = 14;
+    const L: usize = 14;
 
     for (i, c) in l.chars().enumerate() {
         if i >= L {
@@ -22,7 +21,6 @@ fn parse_line(l: &str) -> usize {
     }
     panic!("damn!");
 }
-
 
 fn main() -> io::Result<()> {
     let stdin = io::stdin();

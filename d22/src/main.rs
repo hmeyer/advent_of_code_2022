@@ -1,9 +1,9 @@
-use std::io;
-use std::collections::{VecDeque, HashSet, HashMap};
-use std::cmp::{max, min};
-use std::fmt::Display;
-use std::fmt;
 use std::cmp::Ordering;
+use std::cmp::{max, min};
+use std::collections::{HashMap, HashSet, VecDeque};
+use std::fmt;
+use std::fmt::Display;
+use std::io;
 use std::ops::RangeInclusive;
 
 fn consume_u(l: &str) -> Option<(usize, &str)> {
@@ -49,7 +49,7 @@ fn facing_pos(map: &[Vec<char>], mut p: Pos) -> Pos {
             } else {
                 p.x = map[p.y].iter().position(|c| *c != ' ').unwrap();
             }
-        },
+        }
         2 => {
             if p.x == 0 || map[p.y][p.x - 1] == ' ' {
                 p.x = map[p.y].len() - 1;
@@ -59,15 +59,20 @@ fn facing_pos(map: &[Vec<char>], mut p: Pos) -> Pos {
         }
         1 => {
             if map.len() - 1 > p.y && map[p.y + 1].len() > p.x && map[p.y + 1][p.x] != ' ' {
-                    p.y += 1;
+                p.y += 1;
             } else {
-                p.y = map.iter().position(|l| l.len() > p.x && l[p.x] != ' ').unwrap();
+                p.y = map
+                    .iter()
+                    .position(|l| l.len() > p.x && l[p.x] != ' ')
+                    .unwrap();
             }
-
         }
         3 => {
             if p.y == 0 || map[p.y - 1][p.x] == ' ' {
-                p.y = map.iter().rposition(|l| l.len() > p.x && l[p.x] != ' ').unwrap();
+                p.y = map
+                    .iter()
+                    .rposition(|l| l.len() > p.x && l[p.x] != ' ')
+                    .unwrap();
             } else {
                 p.y -= 1;
             }
@@ -101,13 +106,12 @@ fn cube_facing_pos(map: &[Vec<char>], mut p: Pos) -> Pos {
                     p.x = p.y - 2 * fl;
                     p.y = 3 * fl - 1;
                     p.facing = 3;
-
                 }
             }
-        },
+        }
         1 => {
             if map.len() - 1 > p.y && map[p.y + 1].len() > p.x && map[p.y + 1][p.x] != ' ' {
-                    p.y += 1;
+                p.y += 1;
             } else {
                 if p.x < fl {
                     p.x += 2 * fl;
@@ -122,7 +126,6 @@ fn cube_facing_pos(map: &[Vec<char>], mut p: Pos) -> Pos {
                     p.facing = 2;
                 }
             }
-
         }
         2 => {
             if p.x != 0 && map[p.y][p.x - 1] != ' ' {
@@ -191,19 +194,27 @@ fn draw_pos(map: &mut [Vec<char>], pos: &Pos) {
 
 fn walk(map: &[Vec<char>], mut path: &str, cube: bool) -> Pos {
     let startX = map[0].iter().position(|c| *c == '.').unwrap();
-    let mut pos = Pos { x: startX, y: 0, facing: 0};
+    let mut pos = Pos {
+        x: startX,
+        y: 0,
+        facing: 0,
+    };
 
     let mut cmap = map.iter().map(|l| l.clone()).collect::<Vec<_>>();
 
     while !path.is_empty() {
         match &path[..1] {
             "L" => {
-                pos.l(); path = &path[1..]; continue;
+                pos.l();
+                path = &path[1..];
+                continue;
             }
             "R" => {
-                pos.r(); path = &path[1..]; continue;
+                pos.r();
+                path = &path[1..];
+                continue;
             }
-            _ => {},
+            _ => {}
         }
         let n = consume_u(&path).unwrap();
         path = n.1;
@@ -211,7 +222,7 @@ fn walk(map: &[Vec<char>], mut path: &str, cube: bool) -> Pos {
         draw_pos(&mut cmap, &pos);
         for _ in 0..n {
             let f;
-            if cube { 
+            if cube {
                 f = cube_facing_pos(map, pos.clone());
             } else {
                 f = facing_pos(map, pos.clone());
@@ -224,26 +235,34 @@ fn walk(map: &[Vec<char>], mut path: &str, cube: bool) -> Pos {
     }
     draw(&cmap);
     pos
-
 }
 
 fn main() -> io::Result<()> {
     let stdin = io::stdin();
     let lines = stdin.lines().map(|l| l.unwrap()).collect::<Vec<_>>();
-    let map = lines[..lines.len() - 2].iter().map(|l| l.chars().collect::<Vec<char>>()).collect::<Vec<_>>();
+    let map = lines[..lines.len() - 2]
+        .iter()
+        .map(|l| l.chars().collect::<Vec<char>>())
+        .collect::<Vec<_>>();
     let path = &lines[lines.len() - 1];
 
     let pos = walk(&map, &path, false);
-    println!("p1 final {:?} Password = {}", pos, 1000 * (pos.y + 1) + 4 * (pos.x + 1) + pos.facing);
+    println!(
+        "p1 final {:?} Password = {}",
+        pos,
+        1000 * (pos.y + 1) + 4 * (pos.x + 1) + pos.facing
+    );
 
     // Walk a bit on an empty map.
     // let map = map.iter().map(|l| l.iter().map(|c| if *c == ' ' {' '} else {'.'}).collect::<Vec<_>>()).collect::<Vec<_>>();
     // let path = "25R10L90";
 
     let pos = walk(&map, &path, true);
-    println!("p2 final {:?} Password = {}", pos, 1000 * (pos.y + 1) + 4 * (pos.x + 1) + pos.facing);
-
-    
+    println!(
+        "p2 final {:?} Password = {}",
+        pos,
+        1000 * (pos.y + 1) + 4 * (pos.x + 1) + pos.facing
+    );
 
     Ok(())
 }

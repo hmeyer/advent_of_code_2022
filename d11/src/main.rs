@@ -1,6 +1,6 @@
-use std::io;
-use std::collections::{VecDeque};
 use std::cmp::max;
+use std::collections::VecDeque;
+use std::io;
 
 #[derive(Debug)]
 enum Op {
@@ -8,7 +8,6 @@ enum Op {
     Add(u64),
     Square,
 }
-
 
 #[derive(Debug)]
 struct Monkey {
@@ -20,13 +19,16 @@ struct Monkey {
     pub target_false: usize,
 }
 
-fn parse_monkey(lines: &mut dyn Iterator<Item=String>) -> Option<Monkey> {
+fn parse_monkey(lines: &mut dyn Iterator<Item = String>) -> Option<Monkey> {
     if lines.next().is_none() {
         return None;
     }
     let starting = lines.next().unwrap();
     assert!(starting.starts_with("  Starting items: "));
-    let items = starting[18..].split(", ").map(|i| i.parse::<u32>().unwrap().into()).collect();
+    let items = starting[18..]
+        .split(", ")
+        .map(|i| i.parse::<u32>().unwrap().into())
+        .collect();
 
     let op = lines.next().unwrap();
     assert!(op.starts_with("  Operation: new = old "));
@@ -44,7 +46,6 @@ fn parse_monkey(lines: &mut dyn Iterator<Item=String>) -> Option<Monkey> {
         }
     }
 
-
     let test_div = lines.next().unwrap();
     assert!(test_div.starts_with("  Test: divisible by "));
     let test_div = test_div[21..].parse::<u32>().unwrap().into();
@@ -52,18 +53,18 @@ fn parse_monkey(lines: &mut dyn Iterator<Item=String>) -> Option<Monkey> {
     let target_true = lines.next().unwrap();
     assert!(target_true.starts_with("    If true: throw to monkey "));
     let target_true = target_true[29..].parse::<usize>().unwrap();
-    
+
     let target_false = lines.next().unwrap();
     assert!(target_false.starts_with("    If false: throw to monkey "));
     let target_false = target_false[30..].parse::<usize>().unwrap();
 
-    Some(Monkey{
+    Some(Monkey {
         inspections: 0,
         items,
         op,
         test_div,
         target_true,
-        target_false
+        target_false,
     })
 }
 
@@ -81,7 +82,10 @@ fn main() -> io::Result<()> {
         }
     }
 
-    let all_divs = monkeys.iter().map(|m| m.test_div).fold(1, |prod, i| prod * i);
+    let all_divs = monkeys
+        .iter()
+        .map(|m| m.test_div)
+        .fold(1, |prod, i| prod * i);
     println!("all_divs: {:?}", all_divs);
 
     for round in 1..=10000 {
@@ -116,15 +120,20 @@ fn main() -> io::Result<()> {
             // }
             println!("== After round {} ==", round);
             for m in 0..monkeys.len() {
-                println!("Monkey {} inspected items {} times.", m, monkeys[m].inspections);
+                println!(
+                    "Monkey {} inspected items {} times.",
+                    m, monkeys[m].inspections
+                );
             }
         }
     }
     let mut inspections = monkeys.iter().map(|m| m.inspections).collect::<Vec<_>>();
     println!("Inspections: {:?}", inspections);
     inspections.sort();
-    println!("Business level: {}", inspections[inspections.len() - 1] * inspections[inspections.len() - 2]);
-    
+    println!(
+        "Business level: {}",
+        inspections[inspections.len() - 1] * inspections[inspections.len() - 2]
+    );
 
     Ok(())
 }

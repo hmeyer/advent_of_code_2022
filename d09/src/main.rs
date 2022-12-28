@@ -1,7 +1,6 @@
-use std::io;
-use std::collections::{HashSet};
 use std::cmp::max;
-
+use std::collections::HashSet;
+use std::io;
 
 fn parse_line(l: &str) -> (char, i32) {
     let d = l.chars().next().unwrap();
@@ -27,14 +26,14 @@ fn main() -> io::Result<()> {
                 'L' => rope[0].1 -= 1,
                 'U' => rope[0].0 -= 1,
                 'D' => rope[0].0 += 1,
-                x => panic!("expected direction: {}", x)
+                x => panic!("expected direction: {}", x),
             }
             for i in 1..rope.len() {
-              let d = (rope[i-1].0 - rope[i].0, rope[i-1].1 - rope[i].1);
-              if d.0.abs() > 1 || d.1.abs() > 1 {
-                  rope[i].0 += d.0.signum();
-                  rope[i].1 += d.1.signum();
-              }
+                let d = (rope[i - 1].0 - rope[i].0, rope[i - 1].1 - rope[i].1);
+                if d.0.abs() > 1 || d.1.abs() > 1 {
+                    rope[i].0 += d.0.signum();
+                    rope[i].1 += d.1.signum();
+                }
             }
             short.insert(rope[1]);
             long.insert(rope[rope.len() - 1]);

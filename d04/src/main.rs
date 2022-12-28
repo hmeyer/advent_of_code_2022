@@ -1,7 +1,6 @@
-use std::io;
 use std::collections::HashSet;
+use std::io;
 use std::ops::RangeInclusive;
-
 
 fn parse_line(l: &str) -> (RangeInclusive<i32>, RangeInclusive<i32>) {
     let mut ranges = l.split(",").map(|s| parse_range(s));
@@ -30,7 +29,10 @@ fn some_overlap(a: &RangeInclusive<i32>, b: &RangeInclusive<i32>) -> bool {
 fn main() -> io::Result<()> {
     let stdin = io::stdin();
 
-    let ranges = stdin.lines().map(|l| parse_line(&l.unwrap())).collect::<Vec<_>>();
+    let ranges = stdin
+        .lines()
+        .map(|l| parse_line(&l.unwrap()))
+        .collect::<Vec<_>>();
     let full = ranges.iter().filter(|(a, b)| fully_overlap(a, b)).count();
     let some = ranges.iter().filter(|(a, b)| some_overlap(a, b)).count();
 

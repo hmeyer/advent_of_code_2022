@@ -1,10 +1,9 @@
-use std::io;
-use std::collections::{VecDeque, HashSet};
-use std::cmp::{max, min};
-use std::fmt::Display;
-use std::fmt;
 use std::cmp::Ordering;
-
+use std::cmp::{max, min};
+use std::collections::{HashSet, VecDeque};
+use std::fmt;
+use std::fmt::Display;
+use std::io;
 
 fn parse_num(l: &str) -> (i32, &str) {
     if let Some(p) = l.find(|c: char| !c.is_numeric()) {
@@ -20,7 +19,7 @@ fn parse_path(mut l: &str) -> Vec<(i32, i32)> {
         let (x, r) = parse_num(l);
         l = &r[1..];
         let (y, r) = parse_num(l);
-        if r.len() > 0  {
+        if r.len() > 0 {
             l = &r[4..];
         } else {
             l = r;
@@ -32,7 +31,7 @@ fn parse_path(mut l: &str) -> Vec<(i32, i32)> {
 
 fn draw_path(grid: &mut HashSet<(i32, i32)>, path: &[(i32, i32)]) {
     for i in 1..path.len() {
-        let mut s = path[i-1];
+        let mut s = path[i - 1];
         let e = path[i];
         let steps = max((s.0 - e.0).abs(), (s.1 - e.1).abs());
         for _ in 0..=steps {
@@ -70,7 +69,7 @@ fn drop_floor(grid: &mut HashSet<(i32, i32)>, floor: i32) -> bool {
     }
 
     loop {
-        if p.0 == floor-1 {
+        if p.0 == floor - 1 {
             grid.insert(p);
             return true;
         }

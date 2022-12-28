@@ -1,17 +1,22 @@
-use std::io;
-use std::collections::{VecDeque, HashSet, HashMap};
-use std::cmp::{max, min};
-use std::fmt::Display;
-use std::fmt;
 use std::cmp::Ordering;
+use std::cmp::{max, min};
+use std::collections::{HashMap, HashSet, VecDeque};
+use std::fmt;
+use std::fmt::Display;
+use std::io;
 use std::ops::RangeInclusive;
 
-
 fn bounds(elves: &HashSet<(i32, i32)>) -> ((i32, i32), (i32, i32)) {
-    ((elves.iter().map(|e| e.0).min().unwrap(),
-      elves.iter().map(|e| e.0).max().unwrap()),
-     (elves.iter().map(|e| e.1).min().unwrap(),
-      elves.iter().map(|e| e.1).max().unwrap()))
+    (
+        (
+            elves.iter().map(|e| e.0).min().unwrap(),
+            elves.iter().map(|e| e.0).max().unwrap(),
+        ),
+        (
+            elves.iter().map(|e| e.1).min().unwrap(),
+            elves.iter().map(|e| e.1).max().unwrap(),
+        ),
+    )
 }
 
 fn print_elves(elves: &HashSet<(i32, i32)>) {
@@ -51,7 +56,11 @@ fn move_elves(round: usize, elves: &HashSet<(i32, i32)>) -> Option<HashSet<(i32,
     Some(nelves)
 }
 
-fn check_and_propose(round: usize, pos: (i32, i32), elves: &HashSet<(i32, i32)>) -> Option<(i32, i32)> {
+fn check_and_propose(
+    round: usize,
+    pos: (i32, i32),
+    elves: &HashSet<(i32, i32)>,
+) -> Option<(i32, i32)> {
     let mut found_others = false;
     for yd in -1..=1 {
         for xd in -1..=1 {
@@ -73,7 +82,8 @@ fn check_and_propose(round: usize, pos: (i32, i32), elves: &HashSet<(i32, i32)>)
     }
     for r in round..round + 4 {
         let dir = r % 4;
-        if dir < 2 { // North or South
+        if dir < 2 {
+            // North or South
             let yd = if dir == 0 { -1 } else { 1 };
             let mut found_others = false;
             for xd in -1..=1 {
@@ -85,7 +95,8 @@ fn check_and_propose(round: usize, pos: (i32, i32), elves: &HashSet<(i32, i32)>)
             if !found_others {
                 return Some((pos.0, pos.1 + yd));
             }
-        } else { // West or East
+        } else {
+            // West or East
             let xd = if dir == 2 { -1 } else { 1 };
             let mut found_others = false;
             for yd in -1..=1 {
@@ -105,7 +116,7 @@ fn check_and_propose(round: usize, pos: (i32, i32), elves: &HashSet<(i32, i32)>)
 fn main() -> io::Result<()> {
     let stdin = io::stdin();
     let mut elves = HashSet::new();
-    for (y, l) in  stdin.lines().enumerate() {
+    for (y, l) in stdin.lines().enumerate() {
         let l = l.unwrap();
         for (x, c) in l.chars().enumerate() {
             if c == '#' {
@@ -127,7 +138,13 @@ fn main() -> io::Result<()> {
     let ((x_min, x_max), (y_min, y_max)) = bounds(&elves);
     let xd = x_max - x_min + 1;
     let yd = y_max - y_min + 1;
-    println!("ground covered {} x {} - {} = {}", xd, yd, elves.len(), xd * yd - elves.len() as i32);
+    println!(
+        "ground covered {} x {} - {} = {}",
+        xd,
+        yd,
+        elves.len(),
+        xd * yd - elves.len() as i32
+    );
     println!("number of rounds: {}", r + 1);
 
     Ok(())

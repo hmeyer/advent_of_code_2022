@@ -1,12 +1,11 @@
-use std::io;
-use std::collections::{VecDeque, HashSet, HashMap};
-use std::collections::hash_map::Entry;
-use std::cmp::{max, min};
-use std::fmt::Display;
-use std::fmt;
 use std::cmp::Ordering;
+use std::cmp::{max, min};
+use std::collections::hash_map::Entry;
+use std::collections::{HashMap, HashSet, VecDeque};
+use std::fmt;
+use std::fmt::Display;
+use std::io;
 use std::ops::Range;
-
 
 fn consume_i(l: &str) -> Option<(u8, &str)> {
     if let Some(e) = l.find(|c: char| c != '-' && !c.is_numeric()) {
@@ -31,7 +30,6 @@ struct Blueprint {
     pub geode_ore: u8,
     pub geode_obsidian: u8,
 }
-
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 struct Inv {
@@ -71,7 +69,7 @@ impl Blueprint {
         Blueprint {
             ore_ore,
             clay_ore,
-            obsidian_ore, 
+            obsidian_ore,
             obsidian_clay,
             geode_ore,
             geode_obsidian,
@@ -123,12 +121,16 @@ impl Blueprint {
     }
 }
 
-
-
 fn main() -> io::Result<()> {
     let stdin = io::stdin();
-    let blueprints = stdin.lines().map(|l| Blueprint::from_line(&l.unwrap())).collect::<Vec<_>>();
-    let inv = Inv{ r_ore: 1, ..Default::default() };
+    let blueprints = stdin
+        .lines()
+        .map(|l| Blueprint::from_line(&l.unwrap()))
+        .collect::<Vec<_>>();
+    let inv = Inv {
+        r_ore: 1,
+        ..Default::default()
+    };
     let mut qsum = 0;
     for (i, b) in blueprints.iter().enumerate() {
         let i = i + 1;

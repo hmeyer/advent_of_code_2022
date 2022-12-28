@@ -1,14 +1,13 @@
-use std::io;
 use std::collections::HashSet;
+use std::io;
 use std::ops::RangeInclusive;
-
 
 fn parse_crates(l: &str) -> Vec<char> {
     let mut r = Vec::new();
     let mut c = l.chars();
     loop {
         if c.next() == None {
-            break
+            break;
         }
         r.push(c.next().unwrap());
         c.next();
@@ -26,15 +25,14 @@ struct Move {
 
 fn parse_move(l: &str) -> Move {
     let parts = l.split(" ").collect::<Vec<_>>();
-    assert!(parts[0] =="move");
-    assert!(parts[2] =="from");
-    assert!(parts[4] =="to");
+    assert!(parts[0] == "move");
+    assert!(parts[2] == "from");
+    assert!(parts[4] == "to");
     Move {
         num: parts[1].parse::<usize>().unwrap(),
         from: parts[3].parse::<usize>().unwrap(),
         to: parts[5].parse::<usize>().unwrap(),
     }
-
 }
 
 fn main() -> io::Result<()> {
@@ -49,7 +47,7 @@ fn main() -> io::Result<()> {
             break;
         }
         let crates = parse_crates(&l);
-        if stacks.len() == 0 { 
+        if stacks.len() == 0 {
             // first iteration.
             for _ in 0..crates.len() {
                 stacks.push(Vec::new());
@@ -58,7 +56,6 @@ fn main() -> io::Result<()> {
         for (i, c) in crates.into_iter().enumerate() {
             if c != ' ' {
                 stacks[i].push(c);
-
             }
         }
     }
@@ -79,7 +76,7 @@ fn main() -> io::Result<()> {
         }
         crane.reverse();
         for c in crane {
-            stacks[m.to -1].push(c);
+            stacks[m.to - 1].push(c);
         }
         println!("{:?}", stacks);
     }

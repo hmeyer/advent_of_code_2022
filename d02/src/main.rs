@@ -1,9 +1,8 @@
 use std::io;
 
-
 fn parse_line(l: &str) -> u8 {
     let l = l.chars().collect::<Vec<_>>();
-    let (op, x) = (l[0] as u8 - 'A' as u8, l[2] as u8- 'X' as u8);
+    let (op, x) = (l[0] as u8 - 'A' as u8, l[2] as u8 - 'X' as u8);
     let my = calc_move(op, x);
     calc_outcome(op, my) + 1 + my
 }

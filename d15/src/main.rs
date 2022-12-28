@@ -1,22 +1,22 @@
-use std::io;
-use std::collections::{VecDeque, HashSet};
-use std::cmp::{max, min};
-use std::fmt::Display;
-use std::fmt;
 use std::cmp::Ordering;
+use std::cmp::{max, min};
+use std::collections::{HashSet, VecDeque};
+use std::fmt;
+use std::fmt::Display;
+use std::io;
 use std::ops::RangeInclusive;
 
 fn parse_line(mut l: &str) -> ((i64, i64), (i64, i64)) {
     l = &l[12..];
     let e = l.find(|c: char| c != '-' && !c.is_numeric()).unwrap();
     let sx = l[..e].parse::<i64>().unwrap();
-    l = &l[e+4..];
+    l = &l[e + 4..];
     let e = l.find(|c: char| c != '-' && !c.is_numeric()).unwrap();
     let sy = l[..e].parse::<i64>().unwrap();
-    l = &l[e+25..];
+    l = &l[e + 25..];
     let e = l.find(|c: char| c != '-' && !c.is_numeric()).unwrap();
     let bx = l[..e].parse::<i64>().unwrap();
-    l = &l[e+4..];
+    l = &l[e + 4..];
     let by = l.parse::<i64>().unwrap();
     ((sx, sy), (bx, by))
 }
@@ -58,7 +58,6 @@ fn empty_spot(row: i64, sensors: &[((i64, i64), i64)], r: RangeInclusive<i64>) -
                 if !lower.is_empty() {
                     nranges.push(lower);
                 }
-
             }
             ranges = nranges;
         }
@@ -104,7 +103,12 @@ fn main() -> io::Result<()> {
 
     let r = 0..=4000000;
     let e = find_empty(&sensors, r.clone());
-    println!("empty_spot in {:?}: {:?} freq: {}", r, e, e.0 * 4000000 + e.1);
+    println!(
+        "empty_spot in {:?}: {:?} freq: {}",
+        r,
+        e,
+        e.0 * 4000000 + e.1
+    );
 
     Ok(())
 }
